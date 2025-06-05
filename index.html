@@ -89,13 +89,6 @@
             transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Более плавный переход */
         }
 
-        /* Стили для активной (включенной) точки */
-        .dot.active {
-            background-color: rgb(255, 130, 0); /* Более насыщенный оранжевый */
-            /* Более яркое и глубокое свечение */
-            box-shadow: 0 0 calc(var(--dot-height-base) * 0.5) #ff9900, inset 0 0 calc(var(--dot-height-base) * 0.25) #ffddaa;
-        }
-
         /* Стили для двоеточия */
         .colon {
             display: flex;
@@ -118,10 +111,7 @@
             transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
         }
 
-        .colon .dot.active {
-            background-color: rgb(255, 130, 0);
-            box-shadow: 0 0 calc(var(--dot-height-base) * 0.5) #ff9900, inset 0 0 calc(var(--dot-height-base) * 0.25) #ffddaa;
-        }
+
     </style>
 </head>
 <body>
