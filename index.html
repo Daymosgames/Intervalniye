@@ -6,15 +6,34 @@
     <title>Интервальные часы</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* Определяем базовые значения в пикселях для высоты точки и коэффициента горизонтального масштабирования */
+        /* Эти значения рассчитаны так, чтобы блок часов точно соответствовал размерам 1200x600 пикселей */
+        :root {
+            /* Базовая высота одной точки, рассчитанная для общей высоты 600px */
+            --dot-height-base: 38.82513px; 
+            /* Коэффициент горизонтального масштабирования, рассчитанный для достижения соотношения 2:1 для часов и общей ширины 1200px */
+            --horizontal-scale-factor: 0.600003; 
+
+            /* Производные значения в пикселях для внутренних элементов, сохраняющие пропорциональность */
+            --dot-width: calc(var(--dot-height-base) * var(--horizontal-scale-factor));
+            --dot-gap-v: calc(var(--dot-height-base) * 0.2727); /* Вертикальный отступ между точками (исходное соотношение: 0.6 / 2.2) */
+            --dot-gap-h: calc(var(--dot-height-base) * 0.2727 * var(--horizontal-scale-factor)); /* Горизонтальный отступ между точками */
+            --digit-padding-v: calc(var(--dot-height-base) * 0.5454); /* Вертикальный отступ внутри контейнеров цифр (исходное соотношение: 1.2 / 2.2) */
+            --digit-padding-h: calc(var(--dot-height-base) * 0.5454 * var(--horizontal-scale-factor)); /* Горизонтальный отступ внутри контейнеров цифр */
+            --colon-gap-h: calc(var(--dot-height-base) * 0.8181 * var(--horizontal-scale-factor)); /* Горизонтальный отступ между секциями часов (исходное соотношение: 1.8 / 2.2) */
+            --clock-padding-v: calc(var(--dot-height-base) * 1.5909); /* Вертикальный отступ для основного блока часов (исходное соотношение: 3.5 / 2.2) */
+            --clock-padding-h: calc(var(--dot-height-base) * 1.5909 * var(--horizontal-scale-factor)); /* Горизонтальный отступ для основного блока часов */
+        }
+
         /* Общие стили для фона и центрирования */
         body {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Обеспечивает вертикальное центрирование на любом размере экрана */
             margin: 0;
             background-color: #080808; /* Очень темный фон */
-            overflow: hidden; /* Убираем скроллбар */
+            overflow: hidden; /* Убирает полосы прокрутки */
             font-family: 'Inter', sans-serif;
             color: #fff;
         }
@@ -30,34 +49,43 @@
         /* Контейнер для всего дисплея часов */
         .clock-display {
             display: flex;
-            gap: 1.8vh; /* Увеличено расстояние между цифрами и двоеточиями для лучшей читаемости */
+            gap: var(--colon-gap-h); /* Отмасштабированный горизонтальный отступ между секциями часов */
+            padding: var(--clock-padding-v) var(--clock-padding-h);
+            /* Радиус границы скорректирован пропорционально для визуальной привлекательности */
+            border-radius: calc(var(--dot-height-base) * 1.5909 * 0.7);
             background-color: rgba(0, 0, 0, 0.6); /* Чуть более прозрачный фон */
-            padding: 3.5vh; /* Немного увеличено заполнение */
-            border-radius: 2.5vh; /* Чуть более скругленные углы */
-            box-shadow: 0 0 6vh rgba(255, 123, 0, 0.5), inset 0 0 2.5vh rgba(255, 123, 0, 0.3); /* Более выраженное свечение */
+            /* Скорректированные значения теней относительно базовой высоты точки */
+            box-shadow: 0 0 calc(var(--dot-height-base) * 2.5) rgba(255, 123, 0, 0.5),
+                        inset 0 0 calc(var(--dot-height-base) * 1) rgba(255, 123, 0, 0.3);
             border: 1px solid rgba(255, 123, 0, 0.4); /* Чуть более заметная граница */
+
+            /* Фиксированные размеры для полноэкранного отображения на экране 1200x600 */
+            width: 1200px;
+            height: 600px;
+            /* Предотвращает уменьшение часов на меньших окнах просмотра, если это необходимо */
+            flex-shrink: 0;
         }
 
         /* Контейнер для одной цифры */
         .digit-container {
             display: grid;
-            grid-template-columns: repeat(5, 2.2vh); /* Чуть больше размер точек */
-            grid-template-rows: repeat(9, 2.2vh); /* Чуть больше размер точек */
-            gap: 0.6vh; /* Чуть больше расстояние между точками */
-            width: calc(5 * 2.2vh + 4 * 0.6vh);
-            height: calc(9 * 2.2vh + 8 * 0.6vh);
+            grid-template-columns: repeat(5, var(--dot-width)); /* Отмасштабированная горизонтальная ширина столбца */
+            grid-template-rows: repeat(9, var(--dot-height-base)); /* Исходная вертикальная высота строки */
+            gap: var(--dot-gap-v) var(--dot-gap-h); /* Вертикальный и горизонтальный отступ между точками */
+            padding: var(--digit-padding-v) var(--digit-padding-h);
             position: relative;
             background-color: rgba(0, 0, 0, 0.8); /* Более темный фон для контейнера цифры */
-            border-radius: 1.2vh; /* Чуть более скругленные углы */
-            padding: 1.2vh; /* Чуть больше заполнение */
-            box-shadow: inset 0 0 1.2vh rgba(0, 0, 0, 0.6); /* Более выраженная внутренняя тень */
+            /* Радиус границы скорректирован пропорционально для визуальной привлекательности */
+            border-radius: calc(var(--dot-height-base) * 0.5454 * 1.5);
+            /* Более выраженная внутренняя тень */
+            box-shadow: inset 0 0 calc(var(--dot-height-base) * 0.5) rgba(0, 0, 0, 0.6);
         }
 
         /* Стили для отдельной точки (пикселя) */
         .dot {
-            width: 2.2vh;
-            height: 2.2vh;
-            border-radius: 100vh; /* Круглая форма */
+            width: var(--dot-width); /* Отмасштабировано по горизонтали */
+            height: var(--dot-height-base); /* Сохраняет исходную высоту */
+            border-radius: 9999px; /* Обеспечивает эллиптическую форму из-за разной ширины/высоты */
             background-color: transparent;
             box-shadow: none;
             transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Более плавный переход */
@@ -66,7 +94,8 @@
         /* Стили для активной (включенной) точки */
         .dot.active {
             background-color: rgb(255, 130, 0); /* Более насыщенный оранжевый */
-            box-shadow: 0 0 1.2vh #ff9900, inset 0 0 0.6vh #ffddaa; /* Более яркое и глубокое свечение */
+            /* Более яркое и глубокое свечение */
+            box-shadow: 0 0 calc(var(--dot-height-base) * 0.5) #ff9900, inset 0 0 calc(var(--dot-height-base) * 0.25) #ffddaa;
         }
 
         /* Стили для двоеточия */
@@ -75,16 +104,17 @@
             flex-direction: column;
             justify-content: space-around;
             align-items: center;
-            width: 2.2vh; /* Ширина двоеточия соответствует размеру точек */
-            height: calc(9 * 2.2vh + 8 * 0.6vh); /* Высота как у цифры */
+            width: var(--dot-width); /* Ширина двоеточия соответствует отмасштабированной ширине точки */
+            /* Высота соответствует области содержимого контейнера цифры */
+            height: calc(9 * var(--dot-height-base) + 8 * var(--dot-gap-v) + 2 * var(--digit-padding-v));
             position: relative;
-            padding: 1.2vh 0;
+            padding: var(--digit-padding-v) 0; /* Только вертикальный отступ, соответствует цифрам */
         }
 
         .colon .dot {
-            width: 2.2vh;
-            height: 2.2vh;
-            border-radius: 100vh;
+            width: var(--dot-width);
+            height: var(--dot-height-base);
+            border-radius: 9999px;
             background-color: transparent;
             box-shadow: none;
             transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
@@ -92,7 +122,7 @@
 
         .colon .dot.active {
             background-color: rgb(255, 130, 0);
-            box-shadow: 0 0 1.2vh #ff9900, inset 0 0 0.6vh #ffddaa;
+            box-shadow: 0 0 calc(var(--dot-height-base) * 0.5) #ff9900, inset 0 0 calc(var(--dot-height-base) * 0.25) #ffddaa;
         }
     </style>
 </head>
@@ -117,11 +147,11 @@
     </div>
 
     <script>
-        // Function to create a grid of dots within a digit container
+        // Функция для создания сетки точек внутри контейнера цифры
         function createDigitDots(containerId) {
             const container = document.getElementById(containerId);
-            for (let r = 0; r < 9; r++) { // 9 rows
-                for (let c = 0; c < 5; c++) { // 5 columns
+            for (let r = 0; r < 9; r++) { // 9 строк
+                for (let c = 0; c < 5; c++) { // 5 столбцов
                     const dot = document.createElement('div');
                     dot.classList.add('dot');
                     dot.dataset.row = r;
@@ -131,7 +161,7 @@
             }
         }
 
-        // Create dots for all 6 digits
+        // Создаем точки для всех 6 цифр
         createDigitDots('hour-tens');
         createDigitDots('hour-units');
         createDigitDots('minute-tens');
@@ -139,8 +169,8 @@
         createDigitDots('second-tens');
         createDigitDots('second-units');
 
-        // Patterns for digits (5x9 matrix) - outline with central line where needed
-        // true = active dot, false = inactive dot
+        // Шаблоны для цифр (матрица 5x9) - контур с центральной линией там, где это необходимо
+        // true = активная точка, false = неактивная точка
         const digitPatterns = {
             0: [
                 [true, true, true, true, true],
@@ -168,8 +198,8 @@
                 [true, true, true, true, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
-                [false, false, false, false, true], // Empty space
-                [true, true, true, true, true], // Central line
+                [false, false, false, false, true], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [true, false, false, false, false],
                 [true, false, false, false, false],
                 [true, false, false, false, false],
@@ -179,8 +209,8 @@
                 [true, true, true, true, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
-                [false, false, false, false, true], // Empty space
-                [true, true, true, true, true], // Central line
+                [false, false, false, false, true], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [false, false, false, false, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
@@ -190,8 +220,8 @@
                 [true, false, false, false, true],
                 [true, false, false, false, true],
                 [true, false, false, false, true],
-                [true, false, false, false, true], // Empty space
-                [true, true, true, true, true], // Central line
+                [true, false, false, false, true], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [false, false, false, false, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
@@ -201,8 +231,8 @@
                 [true, true, true, true, true],
                 [true, false, false, false, false],
                 [true, false, false, false, false],
-                [true, false, false, false, false], // Empty space
-                [true, true, true, true, true], // Central line
+                [true, false, false, false, false], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [false, false, false, false, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
@@ -212,8 +242,8 @@
                 [true, true, true, true, true],
                 [true, false, false, false, false],
                 [true, false, false, false, false],
-                [true, false, false, false, false], // Empty space
-                [true, true, true, true, true], // Central line
+                [true, false, false, false, false], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [true, false, false, false, true],
                 [true, false, false, false, true],
                 [true, false, false, false, true],
@@ -235,7 +265,7 @@
                 [true, false, false, false, true],
                 [true, false, false, false, true],
                 [true, false, false, false, true],
-                [true, true, true, true, true], // Central line
+                [true, true, true, true, true], // Центральная линия
                 [true, false, false, false, true],
                 [true, false, false, false, true],
                 [true, false, false, false, true],
@@ -245,8 +275,8 @@
                 [true, true, true, true, true],
                 [true, false, false, false, true],
                 [true, false, false, false, true],
-                [true, false, false, false, true], // Empty space
-                [true, true, true, true, true], // Central line
+                [true, false, false, false, true], // Пустое пространство
+                [true, true, true, true, true], // Центральная линия
                 [false, false, false, false, true],
                 [false, false, false, false, true],
                 [false, false, false, false, true],
@@ -254,9 +284,9 @@
             ]
         };
 
-        let colonBlinkState = true; // State for colon blinking
+        let colonBlinkState = true; // Состояние для мигания двоеточия
 
-        // Function to display a digit in the given container
+        // Функция для отображения цифры в данном контейнере
         function displayDigit(containerId, digit) {
             const container = document.getElementById(containerId);
             const dots = container.querySelectorAll('.dot');
@@ -278,9 +308,9 @@
             });
         }
 
-        // Function to update the time
+        // Функция для обновления времени
         function updateTime() {
-            // Get current time in Moscow timezone
+            // Получаем текущее время в московской часовой зоне
             const now = new Date();
             const options = {
                 hour: '2-digit',
@@ -293,19 +323,19 @@
 
             const [hours, minutes, seconds] = moskowTime.split(':').map(Number);
 
-            // Update hours
+            // Обновляем часы
             displayDigit('hour-tens', Math.floor(hours / 10));
             displayDigit('hour-units', hours % 10);
 
-            // Update minutes
+            // Обновляем минуты
             displayDigit('minute-tens', Math.floor(minutes / 10));
             displayDigit('minute-units', minutes % 10);
 
-            // Update seconds
+            // Обновляем секунды
             displayDigit('second-tens', Math.floor(seconds / 10));
             displayDigit('second-units', seconds % 10);
 
-            // Colon blinking
+            // Мигание двоеточия
             const colon1Dots = document.querySelectorAll('#colon1 .dot');
             const colon2Dots = document.querySelectorAll('#colon2 .dot');
 
@@ -316,13 +346,13 @@
                 colon1Dots.forEach(dot => dot.classList.remove('active'));
                 colon2Dots.forEach(dot => dot.classList.remove('active'));
             }
-            colonBlinkState = !colonBlinkState; // Toggle state
+            colonBlinkState = !colonBlinkState; // Переключаем состояние
         }
 
-        // Start time update every second
+        // Запускаем обновление времени каждую секунду
         setInterval(updateTime, 1000);
 
-        // Call the function once immediately to display the time on page load
+        // Вызываем функцию один раз немедленно для отображения времени при загрузке страницы
         updateTime();
     </script>
 </body>
