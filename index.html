@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интервальные часы</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Общие стили для фона и центрирования */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #080808; /* Очень темный фон */
+            overflow: hidden; /* Убираем скроллбар */
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+        }
+
+        .bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(10, 10, 10, 0.9) 0%, rgba(0, 0, 0, 1) 100%);
+            z-index: -1;
+        }
+
+        /* Контейнер для всего дисплея часов */
+        .clock-display {
+            display: flex;
+            gap: 1.8vh; /* Увеличено расстояние между цифрами и двоеточиями для лучшей читаемости */
+            background-color: rgba(0, 0, 0, 0.6); /* Чуть более прозрачный фон */
+            padding: 3.5vh; /* Немного увеличено заполнение */
+            border-radius: 2.5vh; /* Чуть более скругленные углы */
+            box-shadow: 0 0 6vh rgba(255, 123, 0, 0.5), inset 0 0 2.5vh rgba(255, 123, 0, 0.3); /* Более выраженное свечение */
+            border: 1px solid rgba(255, 123, 0, 0.4); /* Чуть более заметная граница */
+        }
+
+        /* Контейнер для одной цифры */
+        .digit-container {
+            display: grid;
+            grid-template-columns: repeat(5, 2.2vh); /* Чуть больше размер точек */
+            grid-template-rows: repeat(9, 2.2vh); /* Чуть больше размер точек */
+            gap: 0.6vh; /* Чуть больше расстояние между точками */
+            width: calc(5 * 2.2vh + 4 * 0.6vh);
+            height: calc(9 * 2.2vh + 8 * 0.6vh);
+            position: relative;
+            background-color: rgba(0, 0, 0, 0.8); /* Более темный фон для контейнера цифры */
+            border-radius: 1.2vh; /* Чуть более скругленные углы */
+            padding: 1.2vh; /* Чуть больше заполнение */
+            box-shadow: inset 0 0 1.2vh rgba(0, 0, 0, 0.6); /* Более выраженная внутренняя тень */
+        }
+
+        /* Стили для отдельной точки (пикселя) */
+        .dot {
+            width: 2.2vh;
+            height: 2.2vh;
+            border-radius: 100vh; /* Круглая форма */
+            background-color: transparent;
+            box-shadow: none;
+            transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out; /* Более плавный переход */
+        }
+
+        /* Стили для активной (включенной) точки */
+        .dot.active {
+            background-color: rgb(255, 130, 0); /* Более насыщенный оранжевый */
+            box-shadow: 0 0 1.2vh #ff9900, inset 0 0 0.6vh #ffddaa; /* Более яркое и глубокое свечение */
+        }
+
+        /* Стили для двоеточия */
+        .colon {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            width: 2.2vh; /* Ширина двоеточия соответствует размеру точек */
+            height: calc(9 * 2.2vh + 8 * 0.6vh); /* Высота как у цифры */
+            position: relative;
+            padding: 1.2vh 0;
+        }
+
+        .colon .dot {
+            width: 2.2vh;
+            height: 2.2vh;
+            border-radius: 100vh;
+            background-color: transparent;
+            box-shadow: none;
+            transition: background-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+        }
+
+        .colon .dot.active {
+            background-color: rgb(255, 130, 0);
+            box-shadow: 0 0 1.2vh #ff9900, inset 0 0 0.6vh #ffddaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+
+    <div class="clock-display">
+        <div class="digit-container" id="hour-tens"></div>
+        <div class="digit-container" id="hour-units"></div>
+        <div class="colon" id="colon1">
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="digit-container" id="minute-tens"></div>
+        <div class="digit-container" id="minute-units"></div>
+        <div class="colon" id="colon2">
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+        <div class="digit-container" id="second-tens"></div>
+        <div class="digit-container" id="second-units"></div>
+    </div>
+
+    <script>
+        // Function to create a grid of dots within a digit container
+        function createDigitDots(containerId) {
+            const container = document.getElementById(containerId);
+            for (let r = 0; r < 9; r++) { // 9 rows
+                for (let c = 0; c < 5; c++) { // 5 columns
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    dot.dataset.row = r;
+                    dot.dataset.col = c;
+                    container.appendChild(dot);
+                }
+            }
+        }
+
+        // Create dots for all 6 digits
+        createDigitDots('hour-tens');
+        createDigitDots('hour-units');
+        createDigitDots('minute-tens');
+        createDigitDots('minute-units');
+        createDigitDots('second-tens');
+        createDigitDots('second-units');
+
+        // Patterns for digits (5x9 matrix) - outline with central line where needed
+        // true = active dot, false = inactive dot
+        const digitPatterns = {
+            0: [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true]
+            ],
+            1: [
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true]
+            ],
+            2: [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true], // Empty space
+                [true, true, true, true, true], // Central line
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, true, true, true, true]
+            ],
+            3: [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true], // Empty space
+                [true, true, true, true, true], // Central line
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true]
+            ],
+            4: [
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true], // Empty space
+                [true, true, true, true, true], // Central line
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true]
+            ],
+            5: [
+                [true, true, true, true, true],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, false, false, false, false], // Empty space
+                [true, true, true, true, true], // Central line
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true]
+            ],
+            6: [
+                [true, true, true, true, true],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, false, false, false, false], // Empty space
+                [true, true, true, true, true], // Central line
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true]
+            ],
+            7: [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true]
+            ],
+            8: [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true], // Central line
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true]
+            ],
+            9: [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true], // Empty space
+                [true, true, true, true, true], // Central line
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true]
+            ]
+        };
+
+        let colonBlinkState = true; // State for colon blinking
+
+        // Function to display a digit in the given container
+        function displayDigit(containerId, digit) {
+            const container = document.getElementById(containerId);
+            const dots = container.querySelectorAll('.dot');
+            const pattern = digitPatterns[digit];
+
+            if (!pattern) {
+                console.error(`Pattern for digit ${digit} not found.`);
+                return;
+            }
+
+            dots.forEach(dot => {
+                const row = parseInt(dot.dataset.row);
+                const col = parseInt(dot.dataset.col);
+                if (pattern[row] && pattern[row][col]) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        // Function to update the time
+        function updateTime() {
+            // Get current time in Moscow timezone
+            const now = new Date();
+            const options = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone: 'Europe/Moscow'
+            };
+            const moskowTime = now.toLocaleTimeString('ru-RU', options); // "HH:MM:SS"
+
+            const [hours, minutes, seconds] = moskowTime.split(':').map(Number);
+
+            // Update hours
+            displayDigit('hour-tens', Math.floor(hours / 10));
+            displayDigit('hour-units', hours % 10);
+
+            // Update minutes
+            displayDigit('minute-tens', Math.floor(minutes / 10));
+            displayDigit('minute-units', minutes % 10);
+
+            // Update seconds
+            displayDigit('second-tens', Math.floor(seconds / 10));
+            displayDigit('second-units', seconds % 10);
+
+            // Colon blinking
+            const colon1Dots = document.querySelectorAll('#colon1 .dot');
+            const colon2Dots = document.querySelectorAll('#colon2 .dot');
+
+            if (colonBlinkState) {
+                colon1Dots.forEach(dot => dot.classList.add('active'));
+                colon2Dots.forEach(dot => dot.classList.add('active'));
+            } else {
+                colon1Dots.forEach(dot => dot.classList.remove('active'));
+                colon2Dots.forEach(dot => dot.classList.remove('active'));
+            }
+            colonBlinkState = !colonBlinkState; // Toggle state
+        }
+
+        // Start time update every second
+        setInterval(updateTime, 1000);
+
+        // Call the function once immediately to display the time on page load
+        updateTime();
+    </script>
+</body>
+</html>
